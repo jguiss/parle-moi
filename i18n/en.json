@@ -1,0 +1,55 @@
+{
+  "app": {
+    "name": "Parle-moi",
+    "tagline": "Talk to strangers from around the world. No account needed. Just press play."
+  },
+  "welcome": {
+    "startButton": "Start the adventure",
+    "onlineCount": "{count} people online now",
+    "cameraError": "Could not access your camera. Please allow camera permissions and try again.",
+    "preparingCamera": "Preparing your camera..."
+  },
+  "chat": {
+    "searching": "Searching...",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "partnerLeft": "Partner left"
+  },
+  "controls": {
+    "microphone": "Microphone",
+    "camera": "Camera",
+    "next": "Next",
+    "stop": "Stop",
+    "filters": "Filters"
+  },
+  "filters": {
+    "title": "Filters",
+    "region": "Region",
+    "gender": "Gender",
+    "language": "Language",
+    "worldwide": "Worldwide",
+    "northAmerica": "North America",
+    "europe": "Europe",
+    "asia": "Asia",
+    "everyone": "Everyone",
+    "male": "Male",
+    "female": "Female",
+    "any": "Any",
+    "english": "English",
+    "french": "French",
+    "spanish": "Spanish",
+    "comingSoon": "COMING SOON",
+    "apply": "Apply filters"
+  },
+  "toast": {
+    "partnerFound": "Partner found!",
+    "lookingNew": "Looking for someone new...",
+    "partnerLeft": "Partner left",
+    "chatEnded": "Chat ended",
+    "micMuted": "Microphone muted",
+    "micUnmuted": "Microphone unmuted",
+    "camOff": "Camera turned off",
+    "camOn": "Camera turned on",
+    "connectionFailed": "Connection failed. Trying again..."
+  }
+}

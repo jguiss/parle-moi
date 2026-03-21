@@ -1,0 +1,194 @@
+"use client";
+
+import { useState, useRef, useCallback, useEffect } from "react";
+import { createPeerConnection } from "@/lib/webrtc";
+
+type SignalSender = (to: string, signal: RTCSessionDescriptionInit | RTCIceCandidateInit) => void;
+
+export type ConnectionStatus = "idle" | "connecting" | "connected" | "failed";
+
+interface UseWebRTCOptions {
+  localStream: MediaStream | null;
+  sendSignal: SignalSender;
+  onRemoteStream?: (stream: MediaStream) => void;
+  onConnectionStateChange?: (state: ConnectionStatus) => void;
+}
+
+interface UseWebRTCReturn {
+  remoteStream: MediaStream | null;
+  connectionStatus: ConnectionStatus;
+  createOffer: (partnerId: string) => Promise<void>;
+  handleOffer: (partnerId: string, offer: RTCSessionDescriptionInit) => Promise<void>;
+  handleAnswer: (answer: RTCSessionDescriptionInit) => Promise<void>;
+  handleIceCandidate: (candidate: RTCIceCandidateInit) => Promise<void>;
+  closeConnection: () => void;
+}
+
+export function useWebRTC({
+  localStream,
+  sendSignal,
+  onRemoteStream,
+  onConnectionStateChange,
+}: UseWebRTCOptions): UseWebRTCReturn {
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("idle");
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const partnerIdRef = useRef<string | null>(null);
+  const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const onRemoteStreamRef = useRef(onRemoteStream);
+  const onConnectionStateChangeRef = useRef(onConnectionStateChange);
+  onRemoteStreamRef.current = onRemoteStream;
+  onConnectionStateChangeRef.current = onConnectionStateChange;
+
+  const updateStatus = useCallback((status: ConnectionStatus) => {
+    setConnectionStatus(status);
+    onConnectionStateChangeRef.current?.(status);
+  }, []);
+
+  const setupPeerConnection = useCallback(
+    (partnerId: string): RTCPeerConnection => {
+      if (pcRef.current) {
+        pcRef.current.close();
+      }
+
+      const pc = createPeerConnection();
+      pcRef.current = pc;
+      partnerIdRef.current = partnerId;
+      pendingCandidatesRef.current = [];
+
+      const newRemoteStream = new MediaStream();
+      setRemoteStream(newRemoteStream);
+
+      // Add local tracks
+      if (localStream) {
+        localStream.getTracks().forEach((track) => {
+          pc.addTrack(track, localStream);
+        });
+      }
+
+      // Handle remote tracks
+      pc.ontrack = (event) => {
+        event.streams[0]?.getTracks().forEach((track) => {
+          newRemoteStream.addTrack(track);
+        });
+        onRemoteStreamRef.current?.(newRemoteStream);
+      };
+
+      // Handle ICE candidates
+      pc.onicecandidate = (event) => {
+        if (event.candidate && partnerIdRef.current) {
+          sendSignal(partnerIdRef.current, event.candidate.toJSON());
+        }
+      };
+
+      // Monitor connection state
+      pc.onconnectionstatechange = () => {
+        switch (pc.connectionState) {
+          case "connected":
+            updateStatus("connected");
+            break;
+          case "disconnected":
+          case "failed":
+            updateStatus("failed");
+            break;
+          case "connecting":
+            updateStatus("connecting");
+            break;
+        }
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+          updateStatus("connected");
+        } else if (pc.iceConnectionState === "failed") {
+          updateStatus("failed");
+        }
+      };
+
+      updateStatus("connecting");
+      return pc;
+    },
+    [localStream, sendSignal, updateStatus]
+  );
+
+  const createOffer = useCallback(
+    async (partnerId: string) => {
+      const pc = setupPeerConnection(partnerId);
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      sendSignal(partnerId, offer);
+    },
+    [setupPeerConnection, sendSignal]
+  );
+
+  const handleOffer = useCallback(
+    async (partnerId: string, offer: RTCSessionDescriptionInit) => {
+      const pc = setupPeerConnection(partnerId);
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+      // Process any pending ICE candidates
+      for (const candidate of pendingCandidatesRef.current) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      }
+      pendingCandidatesRef.current = [];
+
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      sendSignal(partnerId, answer);
+    },
+    [setupPeerConnection, sendSignal]
+  );
+
+  const handleAnswer = useCallback(async (answer: RTCSessionDescriptionInit) => {
+    const pc = pcRef.current;
+    if (!pc) return;
+    await pc.setRemoteDescription(new RTCSessionDescription(answer));
+
+    // Process any pending ICE candidates
+    for (const candidate of pendingCandidatesRef.current) {
+      await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    }
+    pendingCandidatesRef.current = [];
+  }, []);
+
+  const handleIceCandidate = useCallback(async (candidate: RTCIceCandidateInit) => {
+    const pc = pcRef.current;
+    if (!pc) return;
+
+    if (pc.remoteDescription) {
+      await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } else {
+      pendingCandidatesRef.current.push(candidate);
+    }
+  }, []);
+
+  const closeConnection = useCallback(() => {
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+    partnerIdRef.current = null;
+    pendingCandidatesRef.current = [];
+    setRemoteStream(null);
+    updateStatus("idle");
+  }, [updateStatus]);
+
+  useEffect(() => {
+    return () => {
+      if (pcRef.current) {
+        pcRef.current.close();
+        pcRef.current = null;
+      }
+    };
+  }, []);
+
+  return {
+    remoteStream,
+    connectionStatus,
+    createOffer,
+    handleOffer,
+    handleAnswer,
+    handleIceCandidate,
+    closeConnection,
+  };
+}

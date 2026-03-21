@@ -1,0 +1,30 @@
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY server ./server
+COPY tsconfig*.json ./
+
+# ---- Runtime ----
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Install only production deps + tsx (needed to run TS directly)
+COPY package*.json ./
+RUN npm ci
+
+COPY --from=builder /app/server ./server
+COPY --from=builder /app/tsconfig*.json ./
+
+# Create data dir (will be overridden by Fly.io volume mount)
+RUN mkdir -p /data
+
+ENV NODE_ENV=production
+ENV PORT=3001
+ENV DB_PATH=/data/parle-moi.db
+
+EXPOSE 3001
+
+CMD ["npx", "tsx", "server/index.ts"]

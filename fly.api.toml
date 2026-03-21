@@ -1,0 +1,43 @@
+app = "parle-moi-api"
+primary_region = "cdg"
+
+[build]
+  dockerfile = "Dockerfile.server"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3001"
+  DB_PATH = "/data/parle-moi.db"
+
+[mounts]
+  source = "parle_moi_data"
+  destination = "/data"
+
+[[services]]
+  internal_port = 3001
+  protocol = "tcp"
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    [services.ports.force_https]
+      enabled = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [[services.http_checks]]
+    interval = 30000
+    timeout = 5000
+    grace_period = "15s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

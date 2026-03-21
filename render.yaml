@@ -1,0 +1,32 @@
+services:
+  # === Express + Socket.io API ===
+  - type: web
+    name: parle-moi-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile.server
+    plan: free
+    region: frankfurt
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /tmp/parle-moi.db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://parle-moi-web.onrender.com
+      - key: ADMIN_EMAIL
+        value: jguiss@gmail.com
+      - key: ADMIN_PASSWORD
+        value: Admin123!
+
+  # === Next.js Frontend ===
+  - type: web
+    name: parle-moi-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile.web
+    plan: free
+    region: frankfurt
+    envVars:
+      - key: NODE_ENV
+        value: production
