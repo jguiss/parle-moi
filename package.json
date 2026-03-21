@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "concurrently \"next dev -H 0.0.0.0\" \"tsx server/index.ts\"",
     "build": "next build",
+    "render-build": "npm install --include=dev && next build",
     "start": "next start",
     "server": "tsx server/index.ts",
     "server:dev": "tsx watch server/index.ts",
@@ -26,6 +27,9 @@
     "socket.io-client": "^4.7.0",
     "uuid": "^9.0.0",
     "zod": "^3.23.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
