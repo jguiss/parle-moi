@@ -108,8 +108,9 @@ export function WelcomeScreen({ stream, cameraError, onlineCount, onStart, isLoa
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <div className="w-6 h-6 border-2 border-text-dim border-t-accent rounded-full animate-spin" />
-                <p className="text-xs text-text-dim font-body">{t("welcome.preparingCamera")}</p>
+                <svg className="w-10 h-10 text-text-dim" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
               </div>
             )}
           </div>

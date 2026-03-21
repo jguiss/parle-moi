@@ -14,11 +14,7 @@ export default function Home() {
   const [started, setStarted] = useState(false);
   const media = useMediaStream();
 
-  // Start camera on mount
-  useEffect(() => {
-    media.startStream();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Don't auto-start camera — mobile browsers require user gesture for getUserMedia
 
   // Listen for online count
   useEffect(() => {
@@ -62,7 +58,7 @@ export default function Home() {
             cameraError={media.error}
             onlineCount={onlineCount}
             onStart={handleStart}
-            isLoading={!media.stream && !media.error}
+            isLoading={false}
           />
         </div>
       )}
