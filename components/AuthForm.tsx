@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { useI18n } from "@/contexts/I18nContext";
 
 interface AuthFormProps {
   mode: "login" | "register";
@@ -9,6 +10,7 @@ interface AuthFormProps {
 }
 
 export function AuthForm({ mode, onSubmit, error }: AuthFormProps) {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +30,7 @@ export function AuthForm({ mode, onSubmit, error }: AuthFormProps) {
     <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
       {mode === "register" && (
         <div>
-          <label className="block text-xs text-text-secondary font-body mb-1.5">Nom</label>
+          <label className="block text-xs text-text-secondary font-body mb-1.5">{t("register.name")}</label>
           <input
             type="text"
             value={name}
@@ -36,25 +38,25 @@ export function AuthForm({ mode, onSubmit, error }: AuthFormProps) {
             required
             maxLength={50}
             className="w-full px-4 py-3 bg-surface border border-white/[0.06] rounded-xl text-text font-body text-sm placeholder:text-text-dim focus:outline-none focus:border-accent/50 transition-colors"
-            placeholder="Votre nom"
+            placeholder={t("register.namePlaceholder")}
           />
         </div>
       )}
 
       <div>
-        <label className="block text-xs text-text-secondary font-body mb-1.5">Email</label>
+        <label className="block text-xs text-text-secondary font-body mb-1.5">{t("login.email")}</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           className="w-full px-4 py-3 bg-surface border border-white/[0.06] rounded-xl text-text font-body text-sm placeholder:text-text-dim focus:outline-none focus:border-accent/50 transition-colors"
-          placeholder="you@example.com"
+          placeholder={t("login.emailPlaceholder")}
         />
       </div>
 
       <div>
-        <label className="block text-xs text-text-secondary font-body mb-1.5">Mot de passe</label>
+        <label className="block text-xs text-text-secondary font-body mb-1.5">{t("login.password")}</label>
         <input
           type="password"
           value={password}
@@ -62,7 +64,7 @@ export function AuthForm({ mode, onSubmit, error }: AuthFormProps) {
           required
           minLength={8}
           className="w-full px-4 py-3 bg-surface border border-white/[0.06] rounded-xl text-text font-body text-sm placeholder:text-text-dim focus:outline-none focus:border-accent/50 transition-colors"
-          placeholder={mode === "register" ? "8 caractères minimum" : "Votre mot de passe"}
+          placeholder={mode === "register" ? t("register.passwordHint") : t("login.passwordPlaceholder")}
         />
       </div>
 
@@ -75,7 +77,7 @@ export function AuthForm({ mode, onSubmit, error }: AuthFormProps) {
         disabled={loading}
         className="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-accent-soft text-white font-body font-semibold text-sm transition-all duration-200 active:scale-95 disabled:opacity-50"
       >
-        {loading ? "..." : mode === "login" ? "Se connecter" : "Créer un compte"}
+        {loading ? "..." : mode === "login" ? t("login.submit") : t("register.submit")}
       </button>
     </form>
   );

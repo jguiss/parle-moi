@@ -6,20 +6,22 @@ import { translations, Locale, LOCALES } from "../data/translations";
 interface I18nContextType {
   locale: Locale;
   toggleLocale: () => void;
+  setLocale: (locale: Locale) => void;
   t: (key: string) => string;
 }
 
 const I18nContext = createContext<I18nContextType | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>("fr");
-
-  useEffect(() => {
+function getInitialLocale(): Locale {
+  if (typeof window !== "undefined") {
     const saved = localStorage.getItem("parle-moi-locale") as Locale | null;
-    if (saved && LOCALES.includes(saved)) {
-      setLocale(saved);
-    }
-  }, []);
+    if (saved && LOCALES.includes(saved)) return saved;
+  }
+  return "fr";
+}
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [locale, setLocale] = useState<Locale>(getInitialLocale);
 
   useEffect(() => {
     localStorage.setItem("parle-moi-locale", locale);
@@ -32,6 +34,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const setLocaleDirectly = useCallback((newLocale: Locale) => {
+    if (LOCALES.includes(newLocale)) {
+      setLocale(newLocale);
+    }
+  }, []);
+
   const t = useCallback(
     (key: string): string => {
       return translations[locale]?.[key] ?? translations["fr"][key] ?? key;
@@ -40,7 +48,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <I18nContext.Provider value={{ locale, toggleLocale, t }}>
+    <I18nContext.Provider value={{ locale, toggleLocale, setLocale: setLocaleDirectly, t }}>
       {children}
     </I18nContext.Provider>
   );

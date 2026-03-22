@@ -365,18 +365,31 @@ export function VideoChat({ media }: VideoChatProps) {
 
           {appState === "partner_left" && !showRating && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-text-secondary font-body text-sm">{t("videoChat.partnerLeft")}</p>
-                <p className="text-text-dim font-body text-xs mt-1">{t("videoChat.searchingShort")}</p>
+              <div className="bg-bg/80 backdrop-blur-md border border-white/[0.06] rounded-2xl px-8 py-6 text-center max-w-xs">
+                <p className="text-lg font-body font-semibold text-text mb-1">{t("videoChat.partnerLeftMessage")}</p>
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <div className="w-5 h-5 border-2 border-text-dim border-t-accent rounded-full animate-spin" />
+                  <p className="text-text-secondary font-body text-sm">{t("videoChat.autoSearching")}</p>
+                </div>
               </div>
             </div>
           )}
 
           {appState === "disconnected" && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-text-secondary font-body text-sm">{t("videoChat.ended")}</p>
-                <p className="text-text-dim font-body text-xs mt-1">{t("videoChat.pressNext")}</p>
+              <div className="bg-bg/80 backdrop-blur-md border border-white/[0.06] rounded-2xl px-8 py-6 text-center max-w-xs">
+                <span className="text-4xl block mb-3" role="img" aria-label="wave">&#x1F44B;</span>
+                <p className="text-xl font-body font-bold text-text mb-4">{t("videoChat.chatEndedTitle")}</p>
+                <div className="flex items-center justify-center gap-3">
+                  <button onClick={handleNext}
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-accent to-accent-soft text-white font-body text-sm font-semibold shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 transition-all active:scale-95">
+                    {t("videoChat.nextButton")}
+                  </button>
+                  <Link href="/"
+                    className="px-6 py-2.5 rounded-xl bg-surface hover:bg-surface-hover border border-white/[0.06] text-text font-body text-sm font-semibold transition-colors active:scale-95">
+                    {t("videoChat.homeButton")}
+                  </Link>
+                </div>
               </div>
             </div>
           )}

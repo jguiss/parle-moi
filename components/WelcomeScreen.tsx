@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useI18n } from "@/contexts/I18nContext";
+import { Locale } from "@/data/translations";
 
 interface WelcomeScreenProps {
   stream: MediaStream | null;
@@ -18,7 +19,14 @@ export function WelcomeScreen({ stream, cameraError, onlineCount, onStart, isLoa
   const videoRef = useRef<HTMLVideoElement>(null);
   const { user, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { locale, toggleLocale, t } = useI18n();
+  const { locale, toggleLocale, setLocale, t } = useI18n();
+  const [langOpen, setLangOpen] = useState(false);
+
+  const LANG_OPTIONS: { code: Locale; flag: string; label: string; abbr: string }[] = [
+    { code: "fr", flag: "https://flagcdn.com/24x18/fr.png", label: "Fran\u00e7ais", abbr: "FR" },
+    { code: "en", flag: "https://flagcdn.com/24x18/gb.png", label: "English", abbr: "EN" },
+    { code: "es", flag: "https://flagcdn.com/24x18/es.png", label: "Espa\u00f1ol", abbr: "ES" },
+  ];
 
   useEffect(() => {
     if (videoRef.current && stream) videoRef.current.srcObject = stream;
@@ -28,11 +36,40 @@ export function WelcomeScreen({ stream, cameraError, onlineCount, onStart, isLoa
     <div className="fixed inset-0 z-30 bg-bg-deep flex flex-col items-center justify-center px-6 overflow-hidden">
       {/* Nav */}
       <div className="absolute top-4 right-4 flex items-center gap-3 z-10">
-        {/* Language toggle */}
-        <button onClick={toggleLocale} title={t("welcome.switchLang")}
-          className="w-8 h-8 rounded-full bg-surface hover:bg-surface-hover flex items-center justify-center transition-colors text-[11px] font-body font-bold text-text-secondary">
-          {locale === "fr" ? "EN" : locale === "en" ? "ES" : "FR"}
-        </button>
+        {/* Language dropdown */}
+        <div className="relative">
+          <button onClick={() => setLangOpen((v) => !v)} title={t("welcome.switchLang")}
+            className="h-8 px-2 rounded-full bg-surface hover:bg-surface-hover flex items-center gap-1.5 transition-colors text-[11px] font-body font-bold text-text-secondary">
+            <img src={LANG_OPTIONS.find((l) => l.code === locale)!.flag} width={16} height={12} alt="" className="rounded-[2px]" />
+            {LANG_OPTIONS.find((l) => l.code === locale)!.abbr}
+          </button>
+          {langOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setLangOpen(false)} />
+              <div className="absolute right-0 top-10 z-20 w-40 bg-surface border border-white/[0.06] rounded-xl shadow-xl overflow-hidden animate-fadeIn">
+                {LANG_OPTIONS.map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => { setLocale(lang.code); setLangOpen(false); }}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-body transition-colors ${
+                      locale === lang.code
+                        ? "bg-accent/10 text-accent font-medium"
+                        : "text-text-secondary hover:bg-surface-hover hover:text-text"
+                    }`}
+                  >
+                    <img src={lang.flag} width={20} height={15} alt="" className="rounded-[2px]" />
+                    <span className="flex-1 text-left">{lang.label}</span>
+                    {locale === lang.code && (
+                      <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Theme toggle */}
         <button onClick={toggleTheme} title={theme === "dark" ? t("welcome.lightMode") : t("welcome.darkMode")}

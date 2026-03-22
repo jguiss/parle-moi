@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/contexts/I18nContext";
+
 interface ControlBarProps {
   micOn: boolean;
   camOn: boolean;
@@ -61,12 +63,14 @@ export function ControlBar({
   onOpenFilters,
   isConnected,
 }: ControlBarProps) {
+  const { t } = useI18n();
+
   return (
     <div className="flex items-center justify-center gap-3 px-4 py-3 bg-bg-deep border-t border-white/[0.06] pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
       {/* Mic toggle */}
       <ControlButton
         onClick={onToggleMic}
-        label={micOn ? "Couper le micro" : "Activer le micro"}
+        label={micOn ? t("videoChat.micOff") : t("videoChat.micOn")}
         active={micOn}
       >
         {micOn ? (
@@ -84,7 +88,7 @@ export function ControlBar({
       {/* Cam toggle */}
       <ControlButton
         onClick={onToggleCam}
-        label={camOn ? "Désactiver la caméra" : "Activer la caméra"}
+        label={camOn ? t("videoChat.camOff") : t("videoChat.camOn")}
         active={camOn}
       >
         {camOn ? (
@@ -102,7 +106,7 @@ export function ControlBar({
       {/* Next button — large accent */}
       <ControlButton
         onClick={onNext}
-        label="Partenaire suivant"
+        label={t("videoChat.nextPartner")}
         variant="accent"
         size="large"
       >
@@ -114,7 +118,7 @@ export function ControlBar({
       {/* Stop button */}
       <ControlButton
         onClick={onStop}
-        label={isConnected ? "Terminer le chat" : "Arrêter"}
+        label={isConnected ? t("videoChat.endChat") : t("videoChat.stop")}
         variant="danger"
       >
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -123,7 +127,7 @@ export function ControlBar({
       </ControlButton>
 
       {/* Filters */}
-      <ControlButton onClick={onOpenFilters} label="Filtres">
+      <ControlButton onClick={onOpenFilters} label={t("videoChat.filters")}>
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
         </svg>
