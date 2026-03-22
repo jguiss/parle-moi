@@ -45,8 +45,8 @@ export function WelcomeScreen({ stream, cameraError, onlineCount, onStart, isLoa
           </button>
           {langOpen && (
             <>
-              <div className="fixed inset-0 z-10" onClick={() => setLangOpen(false)} />
-              <div className="absolute right-0 top-10 z-20 w-40 bg-surface border border-white/[0.06] rounded-xl shadow-xl overflow-hidden animate-fadeIn">
+              <div className="fixed inset-0 z-30" onClick={() => setLangOpen(false)} />
+              <div className="absolute left-0 top-10 z-40 w-40 bg-surface border border-black/10 dark:border-white/[0.06] rounded-xl shadow-xl overflow-hidden animate-fadeIn">
                 {LANG_OPTIONS.map((lang) => (
                   <button
                     key={lang.code}

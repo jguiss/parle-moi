@@ -263,7 +263,7 @@ export function VideoChat({ media }: VideoChatProps) {
         {/* Remote video */}
         <VideoFeed stream={remoteStream} showPlaceholder={false}>
 
-          <div className="absolute inset-x-0 top-0 p-3 flex items-start justify-between z-10">
+          <div className="absolute inset-x-0 top-0 p-3 flex items-start justify-between z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
             <div className="flex flex-col gap-2">
               <StatusPill status={appState} />
               {/* Active filters display */}
@@ -304,13 +304,13 @@ export function VideoChat({ media }: VideoChatProps) {
               {/* Partner name */}
               {appState === "connected" && partnerName && (
                 <GlassPanel className="px-3 py-1.5 rounded-full">
-                  <span className="text-xs font-body font-medium text-text">{partnerName}</span>
+                  <span className="text-xs font-body font-medium text-text drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{partnerName}</span>
                 </GlassPanel>
               )}
               {/* Timer */}
               {appState === "connected" && (
                 <GlassPanel className="px-3 py-1.5 rounded-full">
-                  <span className="text-xs font-mono text-text">{timer.formatted}</span>
+                  <span className="text-xs font-mono text-text drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{timer.formatted}</span>
                 </GlassPanel>
               )}
             </div>
@@ -358,7 +358,7 @@ export function VideoChat({ media }: VideoChatProps) {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-10 h-10 border-2 border-text-dim border-t-accent rounded-full animate-spin" />
-                <span className="text-sm text-text-secondary font-body">{t("videoChat.searchingShort")}</span>
+                <span className="text-sm text-text-secondary font-body drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{t("videoChat.searchingShort")}</span>
               </div>
             </div>
           )}
@@ -399,7 +399,7 @@ export function VideoChat({ media }: VideoChatProps) {
         <VideoFeed stream={stream} mirrored muted label={t("videoChat.yourCamera")}>
           <div className="absolute bottom-3 left-3 z-10">
             <GlassPanel className="px-3 py-1 rounded-full">
-              <span className="text-[11px] font-body text-text-secondary">
+              <span className="text-[11px] font-body text-text-secondary drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                 {user?.name || "Vous"}
               </span>
             </GlassPanel>
