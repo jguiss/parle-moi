@@ -121,8 +121,18 @@ export function useWebRTC({
         } else if (pc.iceConnectionState === "failed") {
           if (!iceRestartAttemptedRef.current) {
             iceRestartAttemptedRef.current = true;
-            console.log("[WebRTC] ICE failed, attempting restart...");
+            console.log("[WebRTC] ICE failed, attempting restart with new offer...");
+            // restartIce() alone doesn't work — we need to create a new offer
             pc.restartIce();
+            pc.createOffer({ iceRestart: true }).then(async (offer) => {
+              await pc.setLocalDescription(offer);
+              if (partnerIdRef.current) {
+                sendSignal(partnerIdRef.current, offer);
+              }
+            }).catch(err => {
+              console.error("[WebRTC] ICE restart offer failed:", err);
+              updateStatus("failed");
+            });
           } else {
             console.log("[WebRTC] ICE restart also failed, giving up");
             updateStatus("failed");
@@ -134,6 +144,12 @@ export function useWebRTC({
                 iceRestartAttemptedRef.current = true;
                 console.log("[WebRTC] ICE disconnected, attempting restart...");
                 pc.restartIce();
+                pc.createOffer({ iceRestart: true }).then(async (offer) => {
+                  await pc.setLocalDescription(offer);
+                  if (partnerIdRef.current) {
+                    sendSignal(partnerIdRef.current, offer);
+                  }
+                }).catch(err => console.error("[WebRTC] ICE restart offer failed:", err));
               }
             }
           }, 3000);

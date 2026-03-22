@@ -357,8 +357,8 @@ export function VideoChat({ media }: VideoChatProps) {
           {appState === "searching" && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="flex flex-col items-center gap-4">
-                <span className="text-sm text-text-secondary font-body">{t("videoChat.searchingShort")}</span>
                 <div className="w-10 h-10 border-2 border-text-dim border-t-accent rounded-full animate-spin" />
+                <span className="text-sm text-text-secondary font-body">{t("videoChat.searchingShort")}</span>
               </div>
             </div>
           )}
