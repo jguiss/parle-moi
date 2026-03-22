@@ -35,6 +35,7 @@ export function useWebRTC({
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const partnerIdRef = useRef<string | null>(null);
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const iceRestartAttemptedRef = useRef(false);
   const onRemoteStreamRef = useRef(onRemoteStream);
   const onConnectionStateChangeRef = useRef(onConnectionStateChange);
   onRemoteStreamRef.current = onRemoteStream;
@@ -55,6 +56,7 @@ export function useWebRTC({
       pcRef.current = pc;
       partnerIdRef.current = partnerId;
       pendingCandidatesRef.current = [];
+      iceRestartAttemptedRef.current = false;
 
       const newRemoteStream = new MediaStream();
       setRemoteStream(newRemoteStream);
@@ -100,8 +102,27 @@ export function useWebRTC({
       pc.oniceconnectionstatechange = () => {
         if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
           updateStatus("connected");
+          iceRestartAttemptedRef.current = false;
         } else if (pc.iceConnectionState === "failed") {
-          updateStatus("failed");
+          // Try ICE restart once before declaring failure
+          if (!iceRestartAttemptedRef.current) {
+            iceRestartAttemptedRef.current = true;
+            console.log("[WebRTC] ICE failed, attempting restart...");
+            pc.restartIce();
+          } else {
+            updateStatus("failed");
+          }
+        } else if (pc.iceConnectionState === "disconnected") {
+          // Brief disconnection — wait before declaring failure
+          setTimeout(() => {
+            if (pc.iceConnectionState === "disconnected") {
+              if (!iceRestartAttemptedRef.current) {
+                iceRestartAttemptedRef.current = true;
+                console.log("[WebRTC] ICE disconnected, attempting restart...");
+                pc.restartIce();
+              }
+            }
+          }, 3000);
         }
       };
 

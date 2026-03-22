@@ -1,6 +1,7 @@
 "use client";
 
 import { GlassPanel } from "./ui/GlassPanel";
+import { useI18n } from "@/contexts/I18nContext";
 
 type Status = "disconnected" | "searching" | "connected" | "partner_left";
 
@@ -8,14 +9,15 @@ interface StatusPillProps {
   status: Status;
 }
 
-const statusConfig: Record<Status, { label: string; color: string; pulse: boolean }> = {
-  disconnected: { label: "Déconnecté", color: "bg-text-dim", pulse: false },
-  searching: { label: "Recherche...", color: "bg-warning", pulse: true },
-  connected: { label: "Connecté", color: "bg-success", pulse: false },
-  partner_left: { label: "Partenaire parti", color: "bg-danger", pulse: false },
+const statusConfig: Record<Status, { labelKey: string; color: string; pulse: boolean }> = {
+  disconnected: { labelKey: "status.disconnected", color: "bg-text-dim", pulse: false },
+  searching: { labelKey: "status.searching", color: "bg-warning", pulse: true },
+  connected: { labelKey: "status.connected", color: "bg-success", pulse: false },
+  partner_left: { labelKey: "status.partnerLeft", color: "bg-danger", pulse: false },
 };
 
 export function StatusPill({ status }: StatusPillProps) {
+  const { t } = useI18n();
   const config = statusConfig[status];
 
   return (
@@ -28,7 +30,7 @@ export function StatusPill({ status }: StatusPillProps) {
         )}
         <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${config.color}`} />
       </span>
-      <span className="text-xs font-body font-medium text-text">{config.label}</span>
+      <span className="text-xs font-body font-medium text-text">{t(config.labelKey)}</span>
     </GlassPanel>
   );
 }

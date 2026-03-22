@@ -130,8 +130,10 @@ export const translations: Record<Locale, Record<string, string>> = {
 
     // StatusPill
     "status.waiting": "En attente",
+    "status.searching": "Recherche...",
     "status.connected": "Connecté",
     "status.disconnected": "Déconnecté",
+    "status.partnerLeft": "Partenaire parti",
 
     // FilterSheet
     "filter.title": "Filtres",
@@ -332,8 +334,10 @@ export const translations: Record<Locale, Record<string, string>> = {
 
     // StatusPill
     "status.waiting": "Waiting",
+    "status.searching": "Searching...",
     "status.connected": "Connected",
     "status.disconnected": "Disconnected",
+    "status.partnerLeft": "Partner left",
 
     // FilterSheet
     "filter.title": "Filters",
@@ -534,8 +538,10 @@ export const translations: Record<Locale, Record<string, string>> = {
 
     // StatusPill
     "status.waiting": "Esperando",
+    "status.searching": "Buscando...",
     "status.connected": "Conectado",
     "status.disconnected": "Desconectado",
+    "status.partnerLeft": "Compañero se fue",
 
     // FilterSheet
     "filter.title": "Filtros",
