@@ -36,12 +36,15 @@ export function VideoFeed({
           mirrored ? "scale-x-[-1]" : ""
         }`}
       />
-      {!stream && (
+      {!stream && !children && (
         <div className="absolute inset-0 flex items-center justify-center bg-surface">
           <div className="text-text-dim text-sm font-body">
             {label || "No video"}
           </div>
         </div>
+      )}
+      {!stream && children && (
+        <div className="absolute inset-0 bg-surface" />
       )}
       {children}
     </div>
