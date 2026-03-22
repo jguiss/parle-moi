@@ -51,6 +51,46 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", uptime: process.uptime() });
 });
 
+// --- ICE/TURN credentials ---
+app.get("/api/turn-credentials", async (_req, res) => {
+  const metered_api_key = process.env.METERED_API_KEY;
+  const metered_app = process.env.METERED_APP_NAME || "parlemoi";
+
+  // If Metered.ca is configured, fetch temporary TURN credentials
+  if (metered_api_key) {
+    try {
+      const resp = await fetch(
+        `https://${metered_app}.metered.live/api/v1/turn/credentials?apiKey=${metered_api_key}`
+      );
+      const iceServers = await resp.json();
+      return res.json({ iceServers });
+    } catch (err) {
+      console.error("[TURN] Failed to fetch Metered credentials:", err);
+    }
+  }
+
+  // Fallback: static STUN + free TURN servers
+  res.json({
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" },
+      { urls: "stun:stun3.l.google.com:19302" },
+      { urls: "stun:stun4.l.google.com:19302" },
+      {
+        urls: "turn:openrelay.metered.ca:443",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: "turn:openrelay.metered.ca:443?transport=tcp",
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+    ],
+  });
+});
+
 // --- Socket.io ---
 const io = new Server(httpServer, {
   cors: { origin: CORS_ORIGIN, methods: ["GET", "POST"], credentials: true },

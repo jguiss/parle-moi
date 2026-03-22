@@ -1,63 +1,47 @@
-const iceServers: RTCIceServer[] = [
-  // Multiple STUN servers for redundancy
+const API_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+
+// Default fallback ICE servers (used until dynamic ones are fetched)
+const defaultIceServers: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
   { urls: "stun:stun2.l.google.com:19302" },
   { urls: "stun:stun3.l.google.com:19302" },
   { urls: "stun:stun4.l.google.com:19302" },
-  // Free TURN relays for NAT traversal (mobile, restrictive networks)
-  {
-    urls: "turn:openrelay.metered.ca:80",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-  {
-    urls: "turn:openrelay.metered.ca:443",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-  {
-    urls: "turn:openrelay.metered.ca:443?transport=tcp",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-  // Additional free TURN servers
-  {
-    urls: "turn:relay.metered.ca:80",
-    username: "e8dd65b92807e38a4a545c45",
-    credential: "4+ooXpHiRWyjp/IT",
-  },
-  {
-    urls: "turn:relay.metered.ca:443",
-    username: "e8dd65b92807e38a4a545c45",
-    credential: "4+ooXpHiRWyjp/IT",
-  },
-  {
-    urls: "turn:relay.metered.ca:443?transport=tcp",
-    username: "e8dd65b92807e38a4a545c45",
-    credential: "4+ooXpHiRWyjp/IT",
-  },
 ];
 
-// Add custom TURN server if configured (overrides free relays)
-if (
-  typeof window !== "undefined" &&
-  process.env.NEXT_PUBLIC_TURN_URL &&
-  process.env.NEXT_PUBLIC_TURN_USER &&
-  process.env.NEXT_PUBLIC_TURN_PASS
-) {
-  iceServers.push({
-    urls: process.env.NEXT_PUBLIC_TURN_URL,
-    username: process.env.NEXT_PUBLIC_TURN_USER,
-    credential: process.env.NEXT_PUBLIC_TURN_PASS,
-  });
+// Cache for dynamically fetched ICE servers
+let cachedIceServers: RTCIceServer[] | null = null;
+let lastFetchTime = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function fetchIceServers(): Promise<RTCIceServer[]> {
+  const now = Date.now();
+  if (cachedIceServers && now - lastFetchTime < CACHE_TTL) {
+    return cachedIceServers;
+  }
+
+  try {
+    const resp = await fetch(`${API_URL}/api/turn-credentials`);
+    const data = await resp.json();
+    if (data.iceServers && Array.isArray(data.iceServers) && data.iceServers.length > 0) {
+      cachedIceServers = data.iceServers;
+      lastFetchTime = now;
+      console.log(`[WebRTC] Fetched ${data.iceServers.length} ICE servers from API`);
+      return data.iceServers;
+    }
+  } catch (err) {
+    console.warn("[WebRTC] Failed to fetch ICE servers from API, using defaults", err);
+  }
+
+  return defaultIceServers;
 }
 
-export const iceConfig: RTCConfiguration = {
-  iceServers,
-  iceCandidatePoolSize: 10, // Pre-allocate ICE candidates for faster connection
-};
-
-export function createPeerConnection(): RTCPeerConnection {
-  return new RTCPeerConnection(iceConfig);
+export async function createPeerConnection(): Promise<RTCPeerConnection> {
+  const iceServers = await fetchIceServers();
+  const config: RTCConfiguration = {
+    iceServers,
+    iceCandidatePoolSize: 10,
+  };
+  console.log(`[WebRTC] Creating peer connection with ${iceServers.length} ICE servers`);
+  return new RTCPeerConnection(config);
 }

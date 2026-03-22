@@ -47,12 +47,14 @@ export function useWebRTC({
   }, []);
 
   const setupPeerConnection = useCallback(
-    (partnerId: string): RTCPeerConnection => {
+    async (partnerId: string): Promise<RTCPeerConnection> => {
       if (pcRef.current) {
         pcRef.current.close();
       }
 
-      const pc = createPeerConnection();
+      updateStatus("connecting");
+
+      const pc = await createPeerConnection();
       pcRef.current = pc;
       partnerIdRef.current = partnerId;
       pendingCandidatesRef.current = [];
@@ -64,16 +66,17 @@ export function useWebRTC({
       // Add local tracks
       if (localStream) {
         const tracks = localStream.getTracks();
-        console.log(`[WebRTC] Adding ${tracks.length} local tracks`);
+        console.log(`[WebRTC] Adding ${tracks.length} local tracks to peer connection`);
         tracks.forEach((track) => {
           pc.addTrack(track, localStream);
         });
       } else {
-        console.warn("[WebRTC] No local stream available when setting up peer connection!");
+        console.warn("[WebRTC] WARNING: No local stream when setting up peer connection!");
       }
 
       // Handle remote tracks
       pc.ontrack = (event) => {
+        console.log(`[WebRTC] Remote track received: ${event.track.kind}`);
         event.streams[0]?.getTracks().forEach((track) => {
           newRemoteStream.addTrack(track);
         });
@@ -83,7 +86,7 @@ export function useWebRTC({
       // Handle ICE candidates
       pc.onicecandidate = (event) => {
         if (event.candidate && partnerIdRef.current) {
-          console.log(`[WebRTC] ICE candidate: ${event.candidate.type} ${event.candidate.protocol} ${event.candidate.address}`);
+          console.log(`[WebRTC] Sending ICE candidate: ${event.candidate.type || "unknown"} ${event.candidate.protocol || ""}`);
           sendSignal(partnerIdRef.current, event.candidate.toJSON());
         } else if (!event.candidate) {
           console.log("[WebRTC] ICE gathering complete");
@@ -111,20 +114,20 @@ export function useWebRTC({
       };
 
       pc.oniceconnectionstatechange = () => {
+        console.log(`[WebRTC] ICE connection state: ${pc.iceConnectionState}`);
         if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
           updateStatus("connected");
           iceRestartAttemptedRef.current = false;
         } else if (pc.iceConnectionState === "failed") {
-          // Try ICE restart once before declaring failure
           if (!iceRestartAttemptedRef.current) {
             iceRestartAttemptedRef.current = true;
             console.log("[WebRTC] ICE failed, attempting restart...");
             pc.restartIce();
           } else {
+            console.log("[WebRTC] ICE restart also failed, giving up");
             updateStatus("failed");
           }
         } else if (pc.iceConnectionState === "disconnected") {
-          // Brief disconnection — wait before declaring failure
           setTimeout(() => {
             if (pc.iceConnectionState === "disconnected") {
               if (!iceRestartAttemptedRef.current) {
@@ -137,7 +140,6 @@ export function useWebRTC({
         }
       };
 
-      updateStatus("connecting");
       return pc;
     },
     [localStream, sendSignal, updateStatus]
@@ -145,9 +147,11 @@ export function useWebRTC({
 
   const createOffer = useCallback(
     async (partnerId: string) => {
-      const pc = setupPeerConnection(partnerId);
+      console.log(`[WebRTC] Creating offer for partner ${partnerId}`);
+      const pc = await setupPeerConnection(partnerId);
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
+      console.log("[WebRTC] Offer created and set as local description");
       sendSignal(partnerId, offer);
     },
     [setupPeerConnection, sendSignal]
@@ -155,7 +159,8 @@ export function useWebRTC({
 
   const handleOffer = useCallback(
     async (partnerId: string, offer: RTCSessionDescriptionInit) => {
-      const pc = setupPeerConnection(partnerId);
+      console.log(`[WebRTC] Handling offer from partner ${partnerId}`);
+      const pc = await setupPeerConnection(partnerId);
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
 
       // Process any pending ICE candidates
@@ -166,6 +171,7 @@ export function useWebRTC({
 
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
+      console.log("[WebRTC] Answer created and sent");
       sendSignal(partnerId, answer);
     },
     [setupPeerConnection, sendSignal]
@@ -174,6 +180,7 @@ export function useWebRTC({
   const handleAnswer = useCallback(async (answer: RTCSessionDescriptionInit) => {
     const pc = pcRef.current;
     if (!pc) return;
+    console.log("[WebRTC] Handling answer");
     await pc.setRemoteDescription(new RTCSessionDescription(answer));
 
     // Process any pending ICE candidates
