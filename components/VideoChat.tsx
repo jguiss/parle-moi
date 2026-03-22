@@ -261,7 +261,7 @@ export function VideoChat({ media }: VideoChatProps) {
     <div className="fixed inset-0 flex flex-col bg-bg-deep">
       <div className="flex-1 flex flex-col lg:flex-row min-h-0">
         {/* Remote video */}
-        <VideoFeed stream={remoteStream}>
+        <VideoFeed stream={remoteStream} showPlaceholder={false}>
 
           <div className="absolute inset-x-0 top-0 p-3 flex items-start justify-between z-10">
             <div className="flex flex-col gap-2">

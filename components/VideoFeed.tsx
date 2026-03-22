@@ -7,6 +7,7 @@ interface VideoFeedProps {
   mirrored?: boolean;
   muted?: boolean;
   label?: string;
+  showPlaceholder?: boolean;
   children?: React.ReactNode;
 }
 
@@ -15,6 +16,7 @@ export function VideoFeed({
   mirrored = false,
   muted = false,
   label,
+  showPlaceholder = true,
   children,
 }: VideoFeedProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -36,14 +38,14 @@ export function VideoFeed({
           mirrored ? "scale-x-[-1]" : ""
         }`}
       />
-      {!stream && !children && (
+      {!stream && showPlaceholder && (
         <div className="absolute inset-0 flex items-center justify-center bg-surface">
           <div className="text-text-dim text-sm font-body">
             {label || "No video"}
           </div>
         </div>
       )}
-      {!stream && children && (
+      {!stream && !showPlaceholder && (
         <div className="absolute inset-0 bg-surface" />
       )}
       {children}
