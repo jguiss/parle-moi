@@ -36,15 +36,18 @@ export default function Home() {
   }, [showWelcome]);
 
   const handleStart = useCallback(async () => {
-    if (!media.stream) {
-      await media.startStream();
+    let s = media.stream;
+    if (!s) {
+      s = await media.startStream();
     }
+    if (!s) return; // Camera denied or unavailable — don't proceed
     setLeaving(true);
     setStarted(true);
 
+    // Wait longer to ensure React state is updated with the stream
     setTimeout(() => {
       setShowWelcome(false);
-    }, 300);
+    }, 500);
   }, [media]);
 
   return (

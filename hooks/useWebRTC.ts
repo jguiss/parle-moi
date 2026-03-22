@@ -63,9 +63,13 @@ export function useWebRTC({
 
       // Add local tracks
       if (localStream) {
-        localStream.getTracks().forEach((track) => {
+        const tracks = localStream.getTracks();
+        console.log(`[WebRTC] Adding ${tracks.length} local tracks`);
+        tracks.forEach((track) => {
           pc.addTrack(track, localStream);
         });
+      } else {
+        console.warn("[WebRTC] No local stream available when setting up peer connection!");
       }
 
       // Handle remote tracks
@@ -79,17 +83,24 @@ export function useWebRTC({
       // Handle ICE candidates
       pc.onicecandidate = (event) => {
         if (event.candidate && partnerIdRef.current) {
+          console.log(`[WebRTC] ICE candidate: ${event.candidate.type} ${event.candidate.protocol} ${event.candidate.address}`);
           sendSignal(partnerIdRef.current, event.candidate.toJSON());
+        } else if (!event.candidate) {
+          console.log("[WebRTC] ICE gathering complete");
         }
+      };
+
+      pc.onicegatheringstatechange = () => {
+        console.log(`[WebRTC] ICE gathering state: ${pc.iceGatheringState}`);
       };
 
       // Monitor connection state
       pc.onconnectionstatechange = () => {
+        console.log(`[WebRTC] Connection state: ${pc.connectionState}`);
         switch (pc.connectionState) {
           case "connected":
             updateStatus("connected");
             break;
-          case "disconnected":
           case "failed":
             updateStatus("failed");
             break;
